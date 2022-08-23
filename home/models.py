@@ -40,3 +40,26 @@ class Order(models.Model):
 
     def __str__(self):
         return self.order_id
+
+    @staticmethod
+    def giver_order_detail(order_id):
+        instance = Order.objects.filter(order_id = order_id).first()
+        data = {}
+        data['order_id'] = instance.order_id
+        data['amount'] = instance.amount
+        data['status'] = instance.status
+
+        progress_percentage = 0
+        if instance.status == "Order Recieved":
+            progress_percentage = 20
+        elif instance.status == "Baking":
+            progress_percentage = 40
+        elif instance.status == "Baked":
+            progress_percentage = 60
+        elif instance.status == "Out for delivery":
+            progress_percentage = 80
+        elif instance.status == "Order recieved":
+            progress_percentage = 100
+        data['progress'] = progress_percentage
+        
+        return data
