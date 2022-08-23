@@ -2,6 +2,12 @@ from django.db import models
 import string
 import random
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from channels.layers import get_channel_layer
+import json
+from asgiref.sync import async_to_sync
+
 
 # Create your models here.
 
@@ -63,3 +69,32 @@ class Order(models.Model):
         data['progress'] = progress_percentage
         
         return data
+
+@receiver(post_save, sender = Order)
+def order_status_handler(sender,instance,created,**kwargs):
+    if not created:
+        channel_layer = get_channel_layer()
+        data = {}
+        data['order_id'] = instance.order_id
+        data['amount'] = instance.amount
+        data['status'] = instance.status
+
+        progress_percentage = 0
+        if instance.status == "Order Recieved":
+            progress_percentage = 20
+        elif instance.status == "Baking":
+            progress_percentage = 40
+        elif instance.status == "Baked":
+            progress_percentage = 60
+        elif instance.status == "Out for delivery":
+            progress_percentage = 80
+        elif instance.status == "Order recieved":
+            progress_percentage = 100
+        data['progress'] = progress_percentage
+
+        async_to_sync(channel_layer.group_send)(
+            'order_%s' % instance.order_id,{
+                'type':'order_status',
+                'value': json.dumps(data)
+            }
+        )
