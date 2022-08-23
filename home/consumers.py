@@ -1,7 +1,7 @@
 from channels.generic.websocket import WebsocketConsumer
 import json
 from .models import *   
-from asgiref.sync import async_to_sync, sync_to_async
+from asgiref.sync import async_to_sync
 
 class OrderProgress(WebsocketConsumer):
     def connect(self):
@@ -19,8 +19,24 @@ class OrderProgress(WebsocketConsumer):
             'payload':order
         }))
 
+    def receive(self,text_data):
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type':'order_status',
+                'payload':text_data
+            }
+        )
+
+    def order_status(self,event):
+        order = json.loads(event['value'])
+        self.send(text_data = json.dumps({
+            'payload':order
+        }))
+
     def disconnect(self,close_code):
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name,
             self.channel_name
         )
+
