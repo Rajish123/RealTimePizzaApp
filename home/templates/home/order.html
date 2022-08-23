@@ -21,11 +21,13 @@
     function increaseProgress(status, progress) {
         var progress_html = document.querySelector('#progress')
         var status_html = document.querySelector('#status')
-        console.log(progress_html)
-        console.log(status_html)
-
-
         status_html.innerHTML = status
+        if (progress == 100){
+            progress_html.classList.add('bg-success')
+        }else{
+            progress_html.classList.remove('bg-success')
+            
+        }
         progress_html.style.width = progress + "%"
     }
 
