@@ -18,7 +18,7 @@ def order(request , order_id):
         return redirect('/')
     
     context = {'order' : order}
-    return render(request , 'order.html', context)
+    return render(request , 'home/order.html', context)
 
 @csrf_exempt
 def order_pizza(request):
@@ -29,9 +29,9 @@ def order_pizza(request):
         pizza =  Pizza.objects.get(id=data.get('id'))
         order = Order(user=user, pizza=pizza , amount = pizza.price)
         order.save()
-        return JsonResponse({'message': 'Success'})
+        return JsonResponse({'message': 'Success','status':True})
         
     except Pizza.DoesNotExist:
-        return JsonResponse({'error': 'Something went wrong'})
+        return JsonResponse({'error': 'Something went wrong','status':False})
     
     
